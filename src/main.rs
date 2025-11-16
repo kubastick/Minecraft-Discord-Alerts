@@ -110,7 +110,7 @@ async fn send_join_webhook(
         fields: None,
         footer: Some(EmbedFooter {
             text: format!(
-                "Server address: {server_address}\nhttps://github.com/kubastick/Minecraft-Discord-Alerts"
+                "Server address: {server_address}"
             ),
         }),
         timestamp: None,
@@ -118,7 +118,7 @@ async fn send_join_webhook(
 
     let webhook = DiscordWebhook {
         content: None,
-        username: Some("Minecraft Bot".to_string()),
+        username: Some("Minecraft Discord Alerts".to_string()),
         avatar_url: None,
         embeds: Some(vec![embed]),
     };
@@ -138,7 +138,7 @@ async fn send_leave_webhook(
         fields: None,
         footer: Some(EmbedFooter {
             text: format!(
-                "Server address: {server_address}\nhttps://github.com/kubastick/Minecraft-Discord-Alerts"
+                "Server address: {server_address}"
             ),
         }),
         timestamp: None,
@@ -146,7 +146,7 @@ async fn send_leave_webhook(
 
     let webhook = DiscordWebhook {
         content: None,
-        username: Some("Minecraft Bot".to_string()),
+        username: Some("Minecraft Discord Alerts".to_string()),
         avatar_url: None,
         embeds: Some(vec![embed]),
     };
