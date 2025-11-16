@@ -118,7 +118,7 @@ async fn send_join_webhook(
 
     let webhook = DiscordWebhook {
         content: None,
-        username: Some("Minecraft Discord Alerts".to_string()),
+        username: Some("Minecraft Server Alerts".to_string()),
         avatar_url: None,
         embeds: Some(vec![embed]),
     };
@@ -146,7 +146,7 @@ async fn send_leave_webhook(
 
     let webhook = DiscordWebhook {
         content: None,
-        username: Some("Minecraft Discord Alerts".to_string()),
+        username: Some("Minecraft Server Alerts".to_string()),
         avatar_url: None,
         embeds: Some(vec![embed]),
     };
