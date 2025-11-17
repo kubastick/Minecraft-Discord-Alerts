@@ -20,6 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_parallel(1);
 
     let mut players_state: Option<HashSet<String>> = None;
+    let mut is_server_responding: Option<bool> = None;
 
     println!("Starting Minecraft Discord Alerts...");
     println!("Polling server {server_address} every {poll_interval_secs} seconds...");
@@ -29,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(current_players) => {
                 let previous_players = players_state.clone().unwrap_or_else(|| {
                     println!("Fetched initial players list: {current_players:?}");
-                    HashSet::default()
+                    current_players.clone()
                 });
 
                 let joined: Vec<String> = current_players
@@ -65,9 +66,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 players_state = Some(current_players);
+
+                if let Some(server_responding) = is_server_responding
+                    && !server_responding
+                {
+                    send_server_responding_webhook(&discord_webhook_url, true, &server_address)
+                        .await?;
+                }
+
+                is_server_responding = Some(true);
             }
             Err(e) => {
                 eprintln!("Failed to check server status: {}", e);
+
+                if let Some(server_responding) = is_server_responding
+                    && server_responding
+                {
+                    send_server_responding_webhook(&discord_webhook_url, false, &server_address)
+                        .await?;
+                }
+
+                is_server_responding = Some(false);
             }
         }
 
@@ -109,9 +128,7 @@ async fn send_join_webhook(
         color: Some(0x00FF00), // Green
         fields: None,
         footer: Some(EmbedFooter {
-            text: format!(
-                "Server address: {server_address}"
-            ),
+            text: format!("Server address: {server_address}"),
         }),
         timestamp: None,
     };
@@ -137,9 +154,39 @@ async fn send_leave_webhook(
         color: Some(0xFF0000), // Red
         fields: None,
         footer: Some(EmbedFooter {
-            text: format!(
-                "Server address: {server_address}"
-            ),
+            text: format!("Server address: {server_address}"),
+        }),
+        timestamp: None,
+    };
+
+    let webhook = DiscordWebhook {
+        content: None,
+        username: Some("Minecraft Server Alerts".to_string()),
+        avatar_url: None,
+        embeds: Some(vec![embed]),
+    };
+
+    send_discord_webhook(webhook_url, webhook).await
+}
+
+async fn send_server_responding_webhook(
+    webhook_url: &str,
+    responding: bool,
+    server_address: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let embed = DiscordEmbed {
+        title: Some("Server status changed".to_string()),
+        description: Some(match responding {
+            true => format!("**{server_address}** server is online again"),
+            false => format!("**{server_address}** server is offline"),
+        }),
+        color: Some(match responding {
+            true => 0x00FF00,
+            false => 0xFF0000,
+        }),
+        fields: None,
+        footer: Some(EmbedFooter {
+            text: format!("Server address: {server_address}"),
         }),
         timestamp: None,
     };
