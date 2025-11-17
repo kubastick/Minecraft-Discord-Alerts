@@ -177,8 +177,8 @@ async fn send_server_responding_webhook(
     let embed = DiscordEmbed {
         title: Some("Server status changed".to_string()),
         description: Some(match responding {
-            true => format!("**{server_address}** server is online again"),
-            false => format!("**{server_address}** server is offline"),
+            true => "Minecraft server is now online".to_string(),
+            false => "Minecraft server is now offline".to_string(),
         }),
         color: Some(match responding {
             true => 0x00FF00,
