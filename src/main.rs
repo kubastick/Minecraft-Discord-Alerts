@@ -4,10 +4,13 @@ use discord_webhook::*;
 use rust_mc_status::{McClient, ServerData};
 use std::collections::HashSet;
 use std::env;
+use log::{error, info, warn};
 use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
+
     let server_address = env::var("SERVER_ADDRESS")?;
     let discord_webhook_url = env::var("DISCORD_WEBHOOK_URL")?;
     let poll_interval_secs: u64 = env::var("POLL_INTERVAL_SECS")
@@ -22,14 +25,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut players_state: Option<HashSet<String>> = None;
     let mut is_server_responding: Option<bool> = None;
 
-    println!("Starting Minecraft Discord Alerts...");
-    println!("Polling server {server_address} every {poll_interval_secs} seconds...");
+    info!("Starting Minecraft Discord Alerts...");
+    info!("Polling server {server_address} every {poll_interval_secs} seconds...");
 
     loop {
         match check_server_status(&mc_status_client, &server_address).await {
             Ok(current_players) => {
                 let previous_players = players_state.clone().unwrap_or_else(|| {
-                    println!("Fetched initial players list: {current_players:?}");
+                    info!("Fetched initial players list: {current_players:?}");
                     current_players.clone()
                 });
 
@@ -44,25 +47,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .collect();
 
                 for player in &joined {
-                    println!("Player joined: {player}");
+                    info!("Player joined: {player}");
                     if let Err(e) =
                         send_join_webhook(&discord_webhook_url, player, &server_address).await
                     {
-                        eprintln!("Failed to send join webhook: {}", e);
+                        error!("Failed to send join webhook: {}", e);
                     }
                 }
 
                 for player in &left {
-                    println!("Player left: {player}");
+                    info!("Player left: {player}");
                     if let Err(e) =
                         send_leave_webhook(&discord_webhook_url, player, &server_address).await
                     {
-                        eprintln!("Failed to send leave webhook: {}", e);
+                        error!("Failed to send leave webhook: {}", e);
                     }
                 }
 
                 if left.is_empty() && joined.is_empty() {
-                    println!("Ping successfully completed, no player joined or left")
+                    info!("Ping successfully completed, no player joined or left")
                 }
 
                 players_state = Some(current_players);
@@ -70,6 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(server_responding) = is_server_responding
                     && !server_responding
                 {
+                    warn!("Server is responding again");
                     send_server_responding_webhook(&discord_webhook_url, true, &server_address)
                         .await?;
                 }
@@ -77,16 +81,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 is_server_responding = Some(true);
             }
             Err(e) => {
-                eprintln!("Failed to check server status: {}", e);
+                error!("Failed to check server status: {}", e);
 
                 if let Some(server_responding) = is_server_responding
                     && server_responding
                 {
+                    warn!("Server is no longer responding!");
                     send_server_responding_webhook(&discord_webhook_url, false, &server_address)
                         .await?;
                 }
 
                 is_server_responding = Some(false);
+                players_state = None;
             }
         }
 
