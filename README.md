@@ -20,7 +20,7 @@ with [something like this](https://github.com/ErdbeerbaerLP/DiscordIntegration-F
 - Customizable polling interval
 - Docker support for easy deployment
 - Low resource usage (~1.5MB of RAM)
-- ARMV7 and ARM64 support so you can run it on your Raspberry Pi
+- Multi-architecture Docker images (AMD64, ARM64, ARMv7) - runs on x86 servers, Raspberry Pi, and more
 
 ## Prerequisites
 

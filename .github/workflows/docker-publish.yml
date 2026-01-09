@@ -24,10 +24,9 @@ jobs:
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
             platform-tag: arm64
-#          - platform: linux/arm/v7
-#            runner: ubuntu-latest
-#            platform-tag: armv7
-#            skip-on-pr: true
+          - platform: linux/arm/v7
+            runner: ubuntu-latest
+            platform-tag: armv7
     permissions:
       contents: read
       packages: write
@@ -74,7 +73,7 @@ jobs:
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
-        if: ${{ !matrix.skip-on-pr || github.event_name != 'pull_request' }}
+        if: github.event_name != 'pull_request'
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
@@ -118,7 +117,8 @@ jobs:
           for TAG in $TAGS; do
             docker buildx imagetools create -t $TAG \
               $TAG-amd64 \
-              $TAG-arm64
+              $TAG-arm64 \
+              $TAG-armv7
           done
 
       - name: Install cosign
