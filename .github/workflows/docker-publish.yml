@@ -119,7 +119,6 @@ jobs:
             docker buildx imagetools create -t $TAG \
               $TAG-amd64 \
               $TAG-arm64
-#              $TAG-armv7
           done
 
       - name: Install cosign
