@@ -1,20 +1,9 @@
-FROM --platform=$BUILDPLATFORM rust:1.91 AS builder
-
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
+FROM rust:1.91 AS builder
 
 WORKDIR /build
 COPY . .
 
-RUN case "$TARGETPLATFORM" in \
-    "linux/amd64") export RUST_TARGET=x86_64-unknown-linux-gnu ;; \
-    "linux/arm64") export RUST_TARGET=aarch64-unknown-linux-gnu ;; \
-    "linux/arm/v7") export RUST_TARGET=armv7-unknown-linux-gnueabihf ;; \
-    *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
-    esac && \
-    rustup target add $RUST_TARGET && \
-    cargo build --release --target $RUST_TARGET && \
-    cp target/$RUST_TARGET/release/minecraft_discord_alerts target/release/minecraft_discord_alerts
+RUN cargo build --release
 
 FROM ubuntu:latest
 
